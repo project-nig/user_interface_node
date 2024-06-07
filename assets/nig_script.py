@@ -147,6 +147,7 @@ class TransactionInput:
 
 class TransactionOutput:
     def __init__(self, list_public_key_hash: bytes, amount: float, *args, **kwargs):
+        '''Generate the output of the Transaction'''
         self.amount = normal_round(amount,ROUND_VALUE_DIGIT)
         account_temp=kwargs.get('account_temp',False)
         public_key_hash_str=list_public_key_hash[0]
