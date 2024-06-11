@@ -62,7 +62,7 @@ Install Flutter on your PC => https://docs.flutter.dev/get-started/install/windo
 ```bash
   Open in Visual Studio Code the file \lib\src\account_creation.dart
   Go into the line starting by //camille account setup
-  Wirte again the // for the 3 lines below
+  Write again the // for the 3 lines below
   Save the file
   Go to the Menu Run and click on Start Debugging
   Once the Application is available on the Virtual Device
