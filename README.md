@@ -19,7 +19,7 @@ Install Flutter on your PC => https://docs.flutter.dev/get-started/install/windo
   git clone https://github.com/project-nig/beta_interface.git
 ```
 
-## Create a Virtual Device Manager
+## Create a Virtual Device
 ```bash
   Launch Android Studio
   Select More Actions
