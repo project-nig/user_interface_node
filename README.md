@@ -1,6 +1,7 @@
 # Process to run a NIG interface
 
 Process to intall and run a NIG interface based on Android Virtual Device to interact with a network of local Nodes
+
 Technical details can be found here https://docs.google.com/document/d/e/2PACX-1vTO0nKIogxFLGWkN0QpaMsGsg9Cp-Aqfv31sc6p_HQnb7tShmqymOM05o3_7YCFkBY7GIipWSNO756d/pub
 
 ## Authors
@@ -10,7 +11,7 @@ Technical details can be found here https://docs.google.com/document/d/e/2PACX-1
 
 ## Instal Flutter
 
-Install Fultter on your PC => https://docs.flutter.dev/get-started/install/windows/mobile
+Install Flutter on your PC => https://docs.flutter.dev/get-started/install/windows/mobile
 
 ## Clone the project
 
