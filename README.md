@@ -45,6 +45,33 @@ Install Flutter on your PC => https://docs.flutter.dev/get-started/install/windo
   Your Android Virtual Device is now ready to interact with the network of local nodes 
 ```
 
+## Create an account which has NIG
+```bash
+  Open in Visual Studio Code the file \lib\src\account_creation.dart
+  Go into the line starting by //camille account setup
+  Remove the // for the 3 lines below
+  Save the file
+  Go to the Menu Run and click on Start Debugging
+  Once the Application is available on the Virtual Device
+  Go to the menu 10_Creation de Compte
+  Create by clicking on the button Créer un nouveau Compte
+  Go back to the main menu Click on 30_Balance
+  Your account should have some Nig
+```
+## Create a default account without NIG
+```bash
+  Open in Visual Studio Code the file \lib\src\account_creation.dart
+  Go into the line starting by //camille account setup
+  Wirte again the // for the 3 lines below
+  Save the file
+  Go to the Menu Run and click on Start Debugging
+  Once the Application is available on the Virtual Device
+  Go to the menu 10_Creation de Compte
+  Create by clicking on the button Créer un nouveau Compte
+  Go back to the main menu Click on 30_Balance
+  Your account should have some Nig
+```
+
 ## Feedback
 
 If you have any feedback, please reach out to us at cryptomonnaie.nig@gmail.com
