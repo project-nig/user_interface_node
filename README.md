@@ -1,31 +1,50 @@
-# form_app
+# Process to run a NIG interface
 
-A sample demonstrating different types of forms and best practices.
+Process to intall and run a NIG interface based on Android Virtual Device to interact with a network of local Nodes
+Technical details can be found here https://docs.google.com/document/d/e/2PACX-1vTO0nKIogxFLGWkN0QpaMsGsg9Cp-Aqfv31sc6p_HQnb7tShmqymOM05o3_7YCFkBY7GIipWSNO756d/pub
 
-## Sign In with HTTP
-[*lib/src/sign_in_http.dart*](lib/src/sign_in_http.dart)
+## Authors
 
-A sign in form using `package:http` to send a request.
+- [@Crypto_NIG](https://github.com/nigcrypto)
 
-## Form widgets
-[*lib/src/form_widgets.dart*](lib/src/form_widgets.dart)
 
-A stylized form that uses widgets like TextField, DatePicker, Slider, Checkbox,
-and Switch.
+## Instal Flutter
 
-## Autofill
-[*lib/src/autofill.dart*](lib/src/autofill.dart)
+Install Fultter on your PC => https://docs.flutter.dev/get-started/install/windows/mobile
 
-A form that uses AutofillGroup to auto-fill the users name, email, and address.
+## Clone the project
 
-In order to use Autofill in a browser, your app needs to be hosted with HTTPS.
-If you would like to test locally, you can build the app in release mode
-(`flutter run -d chrome --release --web-port=5000`) and use
-[ngrok](https://ngrok.com/) to create an HTTPS url for your local app (`ngrok
-http 5000`)
+```bash
+  git clone https://github.com/project-nig/beta_interface.git
+```
 
-## Validation
-[*lib/src/validation.dart*](lib/src/validation.dart)
+## Create a Virtual Device Manager
+```bash
+  Launch Android Studio
+  Select More Actions
+  Click on Virtual Device Manager
+  Click on Create Device
+  once created Click on the play button of this device
+```
+## Connect the Virtual Device Manager with Flutter
+```bash
+  Go to the directory below directoy where XXX is the name of your PC and launch this script
+  C:\Users\XXXX\AppData\Local\Android\Sdk\platform-tools>adb reverse tcp:5000 tcp:5000
 
-A form that alerts the user if the data entered is invalid.
+```
+
+## Launch Visual Studio Code
+```bash
+  Go to the Menu Run and click on Start Debugging
+```
+
+## Play with the interface
+```bash
+  The debugging start may takes several minutes
+  Your Android Virtual Device is now ready to interact with the network of local nodes 
+```
+
+## Feedback
+
+If you have any feedback, please reach out to us at cryptomonnaie.nig@gmail.com
 
