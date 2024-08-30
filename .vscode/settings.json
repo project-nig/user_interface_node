@@ -1,4 +1,6 @@
 {
     "gradle.allowParallelRun": true,
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "jdk.jdkhome": "C:/Users/davidlio/source/jdk17/",
+    "java.home": "C:/Users/davidlio/source/java/",
 }
