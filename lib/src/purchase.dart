@@ -19,10 +19,12 @@ part 'purchase.g.dart';
 @JsonSerializable()
 class FormData {
   String? amount;
+  String? gap;
   String? receiver_public_key_hash;
 
   FormData({
     this.amount,
+    this.gap,
     this.receiver_public_key_hash,
   });
 
@@ -96,19 +98,35 @@ class _PurchaseState extends State<Purchase> {
                       formData.amount = value;
                     },
                   ),
+                  TextFormField(
+                    autofocus: true,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      filled: true,
+                      hintText: "% d'écart au prix de référence",
+                      labelText: 'Surcôte (défault 0)',
+                    ),
+                    onChanged: (value) {
+                      formData.gap = value;
+                    },
+                  ),
                   TextButton(
                     child: const Text('Acheter'),
                     onPressed: () async {
                       var check_timer=await CheckTimer(30000);
                       if (check_timer=="ok"){
                         var requested_amount =double.parse(formData.toJson()['amount']);
+                        var requested_gap=0.0;
+                        if (formData.toJson()['gap'] != Null){
+                          requested_gap =double.parse(formData.toJson()['gap']);
+                        }
                         print('====launchNigEngine=====');
                         print(requested_amount);
                         var public_key_data = await ActiveAccount();
                         var requester_public_key_hash=public_key_data["public_key_hash"];
                         var requester_public_key_hex=public_key_data["public_key_hex"];
                         try{
-                          var result_step1 = await launchNigEngine(0,requester_public_key_hash,"fake receiver_public_key_hash","purchase_step1",requested_amount,0,"",requester_public_key_hex,"","","");
+                          var result_step1 = await launchNigEngine(0,requester_public_key_hash,"fake receiver_public_key_hash","purchase_step1",requested_amount,requested_gap,0,"",requester_public_key_hex,"","","");
                           print('====result purchase_step1=====');
                           print(result_step1.status);
 

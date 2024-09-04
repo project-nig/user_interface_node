@@ -18,7 +18,7 @@ import 'nig_reputation.dart';
 
 
 
-Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_hash,var receiver_public_key_hash,var action, var requested_amount, var timestamp_nig, var payment_ref, var requester_public_key_hex, var requested_nig, var requested_currency, var smart_contract_ref) async  {
+Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_hash,var receiver_public_key_hash,var action, var requested_amount, var requested_gap, var timestamp_nig, var payment_ref, var requester_public_key_hex, var requested_nig, var requested_currency, var smart_contract_ref) async  {
   print('====launchNigEngine=====');
   print(transaction_amount);
   print(requester_public_key_hash);
@@ -103,7 +103,7 @@ Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_
       
       //STEP 1-2 Check that there is enough NIG in the Wallet
       var marketplace_script1_2="""\r
-CONVERT_2_NIG($requested_amount,datetime.timestamp(datetime.utcnow()),'EUR')*GET_BUYER_SAFETY_COEF()
+CONVERT_2_NIG($requested_amount,datetime.timestamp(datetime.utcnow()),'EUR')*GET_BUYER_SAFETY_COEF()*(1-$requested_gap/100)
 """;
       marketplace_utxo_url=nig_hostname+'/smart_contract_creation';
 
@@ -146,11 +146,11 @@ CONVERT_2_NIG($requested_amount,datetime.timestamp(datetime.utcnow()),'EUR')*GET
 
     var marketplace_script1_4="""\r
 mp_request_step2_done=MarketplaceRequest()
-mp_request_step2_done.step1("mp_request_step2_done","$requester_public_key_hash","$requester_public_key_hex",$requested_amount,"$smart_contract_ref","$new_user_flag",$reputation[0],$reputation[1])
+mp_request_step2_done.step1("mp_request_step2_done","$requester_public_key_hash","$requester_public_key_hex",$requested_amount,$requested_gap,"$smart_contract_ref","$new_user_flag",$reputation[0],$reputation[1])
 mp_request_step2_done.account=sender
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 mp_request_step2_done.get_requested_deposit()
 """;
@@ -336,8 +336,8 @@ memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step2("$account_public_key_hash","$account_public_key_hex","$encrypted_account","$mp_request_signature")
 mp_request_step2_done.validate_step()
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 123456
 """;
@@ -446,8 +446,8 @@ memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step3("$mp_request_signature")
 mp_request_step2_done.validate_step()
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 123456
 """;
@@ -583,8 +583,8 @@ memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step4("$mp_request_signature")
 mp_request_step2_done.validate_step()
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 
 123456
@@ -596,8 +596,8 @@ memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step45("$mp_request_signature")
 mp_request_step2_done.validate_step()
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 
 123456

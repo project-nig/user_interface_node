@@ -36,11 +36,11 @@ var notification_time_offset=7200;
 
 
 ///user profile
-final timer_check_flag=true;
-final smart_contract_creation_flag=false;
-final nb_account_max=1;
+//final timer_check_flag=true;
+//final smart_contract_creation_flag=false;
+//final nb_account_max=1;
 
 ///admin profile
-//final timer_check_flag=false;
-//final smart_contract_creation_flag=true;
-//final nb_account_max=10;
+final timer_check_flag=false;
+final smart_contract_creation_flag=true;
+final nb_account_max=10;

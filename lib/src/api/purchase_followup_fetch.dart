@@ -45,6 +45,7 @@ Future<Marketplace2ItemPage> fetchPage(int startingIndex) async {
         account: elem['encrypted_account'],
         requested_amount: elem['requested_amount'],
         requested_nig: elem['requested_nig'],
+        requested_gap: elem['requested_gap'],
         requested_currency: elem['requested_currency'],
         timestamp: elem['timestamp_nig'],
         payment_ref: elem['payment_ref'],

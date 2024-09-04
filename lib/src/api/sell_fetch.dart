@@ -47,6 +47,7 @@ Future<Marketplace1ItemPage> fetchPage(int startingIndex) async {
           requester_public_key_hex: elem['requester_public_key_hex'],
           requested_amount: elem['requested_amount'],
           requested_nig: elem['requested_nig'],
+          requested_gap: elem['requested_gap'],
           timestamp: elem['timestamp_nig'],
           payment_ref: elem['payment_ref'],
           smart_contract_ref: elem['smart_contract_ref'],

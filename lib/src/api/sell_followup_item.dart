@@ -8,6 +8,7 @@ class Marketplace3Item {
   final Color color;
   final double requested_amount;
   final double requested_nig;
+  final double requested_gap;
   final String requested_currency;
   final String requester_public_key_hash;
   final double timestamp;
@@ -20,6 +21,7 @@ class Marketplace3Item {
     required this.requester_public_key_hash,
     required this.requested_amount,
     required this.requested_nig,
+    required this.requested_gap,
     required this.requested_currency,
     required this.timestamp,
     required this.payment_ref,
@@ -27,7 +29,7 @@ class Marketplace3Item {
     required this.readonly_flag,
   });
 
-  Marketplace3Item.loading() : this(color: Colors.grey, requester_public_key_hash: '...', requested_nig: 0,requested_currency: "", requested_amount:0, timestamp:0, payment_ref:"",smart_contract_ref:"",readonly_flag:false);
+  Marketplace3Item.loading() : this(color: Colors.grey, requester_public_key_hash: '...', requested_nig: 0,requested_currency: "", requested_amount:0, requested_gap:0,timestamp:0, payment_ref:"",smart_contract_ref:"",readonly_flag:false);
 
   bool get isLoading => requester_public_key_hash == '...';
 }

@@ -129,7 +129,7 @@ class ItemTile extends StatelessWidget {
         ),
         ),
         title: Text(item.requester_public_key_hash, style: Theme.of(context).textTheme.titleLarge),
-        trailing: Text('\€ ${(item.requested_amount / 1).toStringAsFixed(2)}'),
+        trailing: Text('\€ ${(item.requested_amount / 1).toStringAsFixed(2)} \% ${(item.requested_gap / 1).toStringAsFixed(2)}'),
 
       ),
     );
@@ -285,7 +285,7 @@ class _SecondPageState extends State<SecondPage> {
                         if (1==1) {
                           //_showDialog("Le Pin et le montant sont validés");
                           try{
-                            var result_step4 = await launchNigEngine(widget.data.requested_nig,widget.data.requester_public_key_hash,widget.data.requester_public_key_hash,"purchase_step4",widget.data.requested_amount,widget.data.timestamp,widget.data.payment_ref,"",widget.data.requested_nig,widget.data.requested_currency,widget.data.smart_contract_ref);
+                            var result_step4 = await launchNigEngine(widget.data.requested_nig,widget.data.requester_public_key_hash,widget.data.requester_public_key_hash,"purchase_step4",widget.data.requested_amount,0,widget.data.timestamp,widget.data.payment_ref,"",widget.data.requested_nig,widget.data.requested_currency,widget.data.smart_contract_ref);
                             print('====result purchase_step4=====');
                             print(result_step4.status);
 
@@ -350,7 +350,7 @@ class _SecondPageState extends State<SecondPage> {
                     var check_timer=await CheckTimer(40000);
                     if (check_timer=="ok"){
                       try{
-                        var result_step45 = await launchNigEngine(widget.data.requested_nig,widget.data.requester_public_key_hash,widget.data.requester_public_key_hash,"purchase_step45",widget.data.requested_amount,widget.data.timestamp,widget.data.payment_ref,"",widget.data.requested_nig,widget.data.requested_currency,widget.data.smart_contract_ref);
+                        var result_step45 = await launchNigEngine(widget.data.requested_nig,widget.data.requester_public_key_hash,widget.data.requester_public_key_hash,"purchase_step45",widget.data.requested_amount,0,widget.data.timestamp,widget.data.payment_ref,"",widget.data.requested_nig,widget.data.requested_currency,widget.data.smart_contract_ref);
                         print('====result purchase_step45=====');
                         print(result_step45.status);
 
@@ -465,8 +465,8 @@ mp_request_step2_done.get_mp_details(66)
 memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.payment_default("$buyer_public_key_hash","$mp_request_signature")
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 123456
 """;
