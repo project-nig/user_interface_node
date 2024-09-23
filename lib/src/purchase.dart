@@ -117,9 +117,12 @@ class _PurchaseState extends State<Purchase> {
                       if (check_timer=="ok"){
                         var requested_amount =double.parse(formData.toJson()['amount']);
                         var requested_gap=0.0;
-                        if (formData.toJson()['gap'] != Null){
+                        try {
                           requested_gap =double.parse(formData.toJson()['gap']);
                         }
+                        catch(e){
+                          requested_gap=0.0;
+                        };
                         print('====launchNigEngine=====');
                         print(requested_amount);
                         var public_key_data = await ActiveAccount();
