@@ -17,6 +17,8 @@ import 'sell_catalog.dart';
 import 'sell_item_tile.dart';
 import 'account_file.dart';
 
+import 'sell_request.dart';
+
 
 class SellHome extends StatelessWidget {
   final SharedPreferences prefs;
@@ -61,36 +63,52 @@ class _SellState extends State<Sell> {
       appBar: AppBar(
         title: const Text('Vente de NIG'),
       ),
-      body: Selector<SellCatalog, int?>(
-        // Selector is a widget from package:provider. It allows us to listen
-        // to only one aspect of a provided value. In this case, we are only
-        // listening to the catalog's `itemCount`, because that's all we need
-        // at this level.
-        selector: (context, catalog) => catalog.itemCount,
-        builder: (context, itemCount, child) => ListView.builder(
-          // When `itemCount` is null, `ListView` assumes an infinite list.
-          // Once we provide a value, it will stop the scrolling beyond
-          // the last element.
-          itemCount: itemCount,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          itemBuilder: (context, index) {
-            // Every item of the `ListView` is individually listening
-            // to the catalog.
-            var catalog = Provider.of<SellCatalog>(context);
+      body: Column(
+        children: <Widget>[
+          TextButton(
+              child: const Text("Créer une demande de vente"),
+              onPressed: () async {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SellRequest(prefs: widget.prefs)));
+              },
+              ),
+          Flexible(
+            child: Container(
+              child:
+                Selector<SellCatalog, int?>(
+                  // Selector is a widget from package:provider. It allows us to listen
+                  // to only one aspect of a provided value. In this case, we are only
+                  // listening to the catalog's `itemCount`, because that's all we need
+                  // at this level.
+                  selector: (context, catalog) => catalog.itemCount,
+                  builder: (context, itemCount, child) => ListView.builder(
+                    // When `itemCount` is null, `ListView` assumes an infinite list.
+                    // Once we provide a value, it will stop the scrolling beyond
+                    // the last element.
+                    itemCount: itemCount,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    itemBuilder: (context, index) {
+                      // Every item of the `ListView` is individually listening
+                      // to the catalog.
+                      var catalog = Provider.of<SellCatalog>(context);
 
-            // Catalog provides a single synchronous method for getting
-            // the current data.
-            var item = catalog.getByIndex(index);
+                      // Catalog provides a single synchronous method for getting
+                      // the current data.
+                      var item = catalog.getByIndex(index);
 
-            if (item.isLoading) {
-              return const LoadingItemTile();
-            }
+                      if (item.isLoading) {
+                        return const LoadingItemTile();
+                      }
 
-            return ItemTile(item: item,prefs: widget.prefs);
-          },
-        ),
-      ),
+                      return ItemTile(item: item,prefs: widget.prefs);
+                    },
+                  ),
+                ),
+            )
+          )
+        ]
+      )
     );
+
   }
 }
 

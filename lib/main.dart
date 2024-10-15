@@ -18,9 +18,8 @@ import 'src/http/mock_client.dart';
 import 'src/transfer.dart';
 import 'src/validation.dart';
 import 'src/transaction_list.dart';
-import 'src/purchase.dart';
+import 'src/purchase_intro.dart';
 import 'src/purchase_followup.dart';
-//import 'src/sell.dart';
 import 'src/sell_intro.dart';
 import 'src/sell_followup.dart';
 import 'src/account_creation.dart';
@@ -165,7 +164,7 @@ setupdemos(prefs) async {
               Demo(
                 name: '20_Achat de NIG',
                 route: '/purchase',
-                builder: (context) => Purchase(
+                builder: (context) => PurchaseIntro(
                   // This sample uses a mock HTTP client.
                   httpClient: mockClient,
                   prefs: prefs,
@@ -262,7 +261,7 @@ setupdemos(prefs) async {
             Demo(
               name: '20_Achat de NIG',
               route: '/purchase',
-              builder: (context) => Purchase(
+              builder: (context) => PurchaseIntro(
                 // This sample uses a mock HTTP client.
                 httpClient: mockClient,
                 prefs: prefs,

@@ -28,6 +28,7 @@ Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_
   //final public_key_data = await json.decode(public_key_response);
   var public_key_data = await ActiveAccount();
   var sender_public_key_hash=public_key_data["public_key_hash"];
+  var sender_public_key_hex=public_key_data["public_key_hex"];
   var private_key=public_key_data["private_key_str"];
   print("check private_key");
   print(private_key);
@@ -50,7 +51,8 @@ Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_
   var jsonString=null;
   var body=null;
   //specific for Marketplace Step2
-  var step1_error=false;
+  var step1_sell_error=false;
+  var step1_buy_error=false;
   var step2_error=null;
   var transaction_data_step2=null;
   var step2_data_init=null;
@@ -71,9 +73,107 @@ Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_
     marketplace_step=0;
     
   };
+
+   //purchase step1 sell
+  if (action=="purchase_step1_sell"){
+    print("*******marketplace_step -1");
+    account_temp_input=false;
+    account_temp_output=true;
+    marketplace_step=-1;
+    var reputation = await GetReputation();
+    //STEP 1-0 Check the amount of NIG in the Wallet
+    final public_key_data = await ActiveAccount();
+    var public_key=public_key_data["public_key_hash"];
+    var response_total = await http.get(Uri.parse(nig_hostname+'/utxo/'+public_key));
+    var step1_total= jsonDecode(response_total.body)['total'];
+    print("=====step1_total=====");
+    print(step1_total);
+    
+    //STEP 1-2 Check that there is enough NIG in the Wallet
+    var marketplace_script1_2="""\r
+CONVERT_2_NIG($requested_amount*GET_SELLER_SAFETY_COEF()*(1-$requested_gap/100),datetime.timestamp(datetime.utcnow()),'EUR')
+""";
+    marketplace_utxo_url=nig_hostname+'/smart_contract_creation';
+
+    body = {
+      'smart_contract_public_key_hash': 'dummy_smart_contract_ref_for_step1',
+      'sender_public_key_hash': 'dummy_account_public_key_hash_for_step1',
+      'payload':marketplace_script1_2,
+    };
+    jsonString = json.encode(body);
+    var marketplace_utxo_response = await http.post(Uri.parse(marketplace_utxo_url), headers: {"Content-Type": "application/json"}, body: jsonString);
+    if (marketplace_utxo_response.statusCode == 503 || marketplace_utxo_response.statusCode == 302) {
+      //the server is in maintenance
+      //let's restart the application
+      Restart.restartApp();
+    }
+    print("*********jsonDecode(marketplace_utxo_response.body)['smart_contract_result']");
+    print(jsonDecode(marketplace_utxo_response.body)['smart_contract_result']);
+    if (jsonDecode(marketplace_utxo_response.body)['smart_contract_result']!=null){
+      var step1_balance=jsonDecode(marketplace_utxo_response.body)['smart_contract_result'].toDouble();
+      print('====step1_balance=====');
+      print(step1_balance);
+      if (step1_balance>step1_total){
+        //There is not enough NIG for the seller which is an issue.
+        step1_sell_error=true;
+      }
+    }
+    else{
+      //The account is not exiting.There is not enough NIG for the seller which is an issue.
+      step1_sell_error=true;
+    }
   
-   //purchase step1
-  if (action=="purchase_step1"){
+    if (step1_sell_error==false){
+      requester_public_key_hash=sender_public_key_hash;
+      receiver_public_key_hash=sender_public_key_hash;
+
+      //STEP 1-2 - creation of a new Smart Contract address
+      var response_total_create_smart_contract_account = await http.get(Uri.parse(nig_hostname+'/create_smart_contract_account'));
+      smart_contract_ref=jsonDecode(response_total_create_smart_contract_account.body);
+      print("smart_contract_ref");
+      print(smart_contract_ref);
+
+      //STEP 1-3 - creation of a new Smart Contract
+      var marketplace_script1_3=await extract_marketplace_request_code('marketplace_script1_3');
+      print("====marketplace_script1_3");
+      print(marketplace_script1_3);
+
+      //var response_marketplace_script_code = await http.get(Uri.parse(nig_hostname+'/smart_contract_api/'+MARKETPLACE_CODE_PUBLIC_KEY_HASH));
+      //var marketplace_script1_3=jsonDecode(response_marketplace_script_code.body)['smart_contract_payload'];
+      
+      var seller_reput_reliability=reputation[1];
+      if (seller_reput_reliability==0){seller_reput_reliability=0.0;};
+
+      var marketplace_script1_4="""\r
+mp_request_step2_done=MarketplaceRequest()
+mp_request_step2_done.step1_sell("mp_request_step2_done","$requester_public_key_hash","$requester_public_key_hex",$requested_amount,$requested_gap,"$smart_contract_ref",$reputation[0],$seller_reput_reliability)
+memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
+  'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
+mp_request_step2_done.get_requested_deposit()
+""";
+
+      var public_key_data = await ActiveAccount();
+      var account_public_key_hex=public_key_data["public_key_hex"];
+      var account_public_key_hash=public_key_data["public_key_hash"];
+
+      payload=marketplace_script1_3+marketplace_script1_4;
+      marketplace_utxo_url=nig_hostname+'/smart_contract_creation';
+
+      body = {
+        'smart_contract_public_key_hash': smart_contract_ref,
+        'sender_public_key_hash': account_public_key_hash,
+        'payload':payload,
+      };
+      jsonString = json.encode(body);
+      request_type="post";
+    }
+  };
+  
+  
+   //purchase step1 buy
+  if (action=="purchase_step1_buy"){
     print("*******marketplace_step 1");
     account_temp_input=false;
     account_temp_output=true;
@@ -103,7 +203,7 @@ Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_
       
       //STEP 1-2 Check that there is enough NIG in the Wallet
       var marketplace_script1_2="""\r
-CONVERT_2_NIG($requested_amount,datetime.timestamp(datetime.utcnow()),'EUR')*GET_BUYER_SAFETY_COEF()*(1-$requested_gap/100)
+CONVERT_2_NIG($requested_amount*GET_BUYER_SAFETY_COEF()*(1-$requested_gap/100),datetime.timestamp(datetime.utcnow()),'EUR')
 """;
       marketplace_utxo_url=nig_hostname+'/smart_contract_creation';
 
@@ -124,7 +224,7 @@ CONVERT_2_NIG($requested_amount,datetime.timestamp(datetime.utcnow()),'EUR')*GET
       print(step1_requested_deposit);
       if (step1_requested_deposit>step1_total){
         //There is not enough NIG for the deposit of the Buyer which is an issue
-        step1_error=true;
+        step1_buy_error=true;
       }
     }
     requester_public_key_hash=sender_public_key_hash;
@@ -146,11 +246,11 @@ CONVERT_2_NIG($requested_amount,datetime.timestamp(datetime.utcnow()),'EUR')*GET
 
     var marketplace_script1_4="""\r
 mp_request_step2_done=MarketplaceRequest()
-mp_request_step2_done.step1("mp_request_step2_done","$requester_public_key_hash","$requester_public_key_hex",$requested_amount,$requested_gap,"$smart_contract_ref","$new_user_flag",$reputation[0],$reputation[1])
+mp_request_step2_done.step1_buy("mp_request_step2_done","$requester_public_key_hash","$requester_public_key_hex",$requested_amount,$requested_gap,"$smart_contract_ref","$new_user_flag",$reputation[0],$reputation[1])
 mp_request_step2_done.account=sender
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 mp_request_step2_done.get_requested_deposit()
 """;
@@ -171,6 +271,110 @@ mp_request_step2_done.get_requested_deposit()
     request_type="post";
 
   };
+  //purchase step15 
+  if (action=="purchase_step15"){
+    print("*******marketplace_step 15");
+    account_temp_input=false;
+    account_temp_output=true;
+    var reputation = await GetReputation();
+    print("==>reputation");
+    print(reputation);
+    var new_user_flag=false;
+    if (reputation[0]==0){
+      //this account has no Reputation
+      //it's a new User
+      new_user_flag=true;
+      transaction_amount=0;
+      }
+    print("==>new_user_flag");
+    print(new_user_flag);
+    if (new_user_flag == true){
+      marketplace_step=150;
+      }
+    else {
+      marketplace_step=15;
+      //STEP 1-0 Check the amount of NIG in the Wallet
+      final public_key_data = await ActiveAccount();
+      var public_key=public_key_data["public_key_hash"];
+      var response_total = await http.get(Uri.parse(nig_hostname+'/utxo/'+public_key));
+      var step1_total= jsonDecode(response_total.body)['total'];
+      print("=====step1_total=====");
+      print(step1_total);
+      
+      //STEP 1-2 Check that there is enough NIG in the Wallet
+      var marketplace_script1_2="""\r
+CONVERT_2_NIG($requested_amount*GET_BUYER_SAFETY_COEF()*(1-$requested_gap/100),datetime.timestamp(datetime.utcnow()),'EUR')
+""";
+      marketplace_utxo_url=nig_hostname+'/smart_contract_creation';
+
+      body = {
+        'smart_contract_public_key_hash': 'dummy_smart_contract_ref_for_step1',
+        'sender_public_key_hash': 'dummy_account_public_key_hash_for_step1',
+        'payload':marketplace_script1_2,
+      };
+      jsonString = json.encode(body);
+      var marketplace_utxo_response = await http.post(Uri.parse(marketplace_utxo_url), headers: {"Content-Type": "application/json"}, body: jsonString);
+      if (marketplace_utxo_response.statusCode == 503 || marketplace_utxo_response.statusCode == 302) {
+        //the server is in maintenance
+        //let's restart the application
+        Restart.restartApp();
+      }
+      var step1_requested_deposit=jsonDecode(marketplace_utxo_response.body)['smart_contract_result'].toDouble();
+      print('====step1_requested_deposit=====');
+      print(step1_requested_deposit);
+      if (step1_requested_deposit>step1_total){
+        //There is not enough NIG for the deposit of the Buyer which is an issue
+        step1_buy_error=true;
+      }
+    }
+    requester_public_key_hash=sender_public_key_hash;
+    requester_public_key_hex=sender_public_key_hex;
+    
+    // Extraction of Smart Contract details
+    //STEP 1-3 - retrieval of request information to make signature
+    var marketplace_api_utxo_url=null;
+    marketplace_api_utxo_url=nig_hostname+'/smart_contract_api/'+smart_contract_ref;
+    var marketplace_api_utxo_response = await http.get(Uri.parse(marketplace_api_utxo_url));
+    if (marketplace_api_utxo_response.statusCode == 503 || marketplace_api_utxo_response.statusCode == 302) {
+      //the server is in maintenance
+      //let's restart the application
+      Restart.restartApp();
+    }
+    var marketplace_api_utxo_json=jsonDecode(marketplace_api_utxo_response.body);
+    var smart_contract_previous_transaction=marketplace_api_utxo_json['smart_contract_previous_transaction'];
+    var smart_contract_transaction_hash=marketplace_api_utxo_json['smart_contract_transaction_hash'];
+    var smart_contract_total=marketplace_api_utxo_json['total'];
+    
+    var buyer_reput_reliability=reputation[1];
+    if (buyer_reput_reliability==0){buyer_reput_reliability=0.0;};
+
+    var marketplace_script1_4="""\r
+memory_obj_2_load=['mp_request_step2_done']
+mp_request_step2_done.step15("$requester_public_key_hash","$requester_public_key_hex",$requested_amount,$requested_gap,"$smart_contract_ref","$new_user_flag",$reputation[0],$buyer_reput_reliability)
+mp_request_step2_done.account=sender
+memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
+  'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
+mp_request_step2_done.get_requested_deposit()
+""";
+
+    payload=marketplace_script1_4;
+    body = {
+      'smart_contract_type': 'source',
+      'smart_contract_public_key_hash': smart_contract_ref,
+      'sender_public_key_hash': requester_public_key_hash,
+      'smart_contract_transaction_hash': smart_contract_transaction_hash,
+      'smart_contract_previous_transaction': smart_contract_transaction_hash,
+      'payload':payload,
+    };
+    jsonString = json.encode(body);
+    request_type="post";
+    marketplace_utxo_url=nig_hostname+'/smart_contract';
+
+  };
+
+
    //purchase step2
   if (action=="purchase_step2"){
     print("*******marketplace_step 2");
@@ -336,8 +540,8 @@ memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step2("$account_public_key_hash","$account_public_key_hex","$encrypted_account","$mp_request_signature")
 mp_request_step2_done.validate_step()
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 123456
 """;
@@ -446,8 +650,8 @@ memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step3("$mp_request_signature")
 mp_request_step2_done.validate_step()
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 123456
 """;
@@ -583,8 +787,8 @@ memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step4("$mp_request_signature")
 mp_request_step2_done.validate_step()
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 
 123456
@@ -596,8 +800,8 @@ memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step45("$mp_request_signature")
 mp_request_step2_done.validate_step()
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 
 123456
@@ -623,7 +827,7 @@ memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['a
   };
 
 
-  if (step1_error!=true && step2_error!=true ){
+  if (step1_buy_error!=true && step2_error!=true && step1_sell_error!=true ){
   var smart_contract_account=null;
   var smart_contract_sender=null;
   var smart_contract_new=false;
@@ -694,22 +898,23 @@ memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['a
     smart_contract_previous_transaction=marketplace_utxo_json['smart_contract_previous_transaction'];
     smart_contract_transaction_hash=marketplace_utxo_json['smart_contract_transaction_hash'];
     
-    if(marketplace_step==0){
+    if(marketplace_step==0 || marketplace_step==-1){
       utxo_url=nig_hostname+'/utxo/'+marketplace_public_key_hash;
-      print("==check marketplace_step 1");
+      print("==check marketplace_step -1 or 0");
     }
     else {
-      if(marketplace_step==2 || marketplace_step == 1){
+      if(marketplace_step==2 || marketplace_step == 1 || marketplace_step == 15){
         var public_key_data = await ActiveAccount();
         var account_public_key_hash=public_key_data["public_key_hash"];
         utxo_url=nig_hostname+'/utxo/'+account_public_key_hash;
-        print("==check marketplace_step 1 or 2");
+        print("==check marketplace_step 1 or 15 or 2");
+        print(utxo_url);
       }
       else {
-        utxo_url=nig_hostname+'/utxo/'+smart_contract_ref;
-        print("==check marketplace_step 3 or 4");
+          utxo_url=nig_hostname+'/utxo/'+smart_contract_ref;
+          print("==check marketplace_step 3 or 4");
+        }
       }
-    }
     };
 
   }else{
@@ -717,21 +922,27 @@ memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['a
     print("==Nig Transfer");
   };
 
-  
+  var utxo_json=null;
+  print("======utxo_url======");
+  print(utxo_url);
   var utxo_response = await http.get(Uri.parse(utxo_url));
   if (utxo_response.statusCode == 503 || utxo_response.statusCode == 302) {
       //the server is in maintenance
       //let's restart the application
       Restart.restartApp();
     }
-  var utxo_json=jsonDecode(utxo_response.body);
+  utxo_json=jsonDecode(utxo_response.body);
   print('====utxo_response=====');
   print(utxo_json.toString());
   print(utxo_json.values);
+  print("======utxo_json======");
+  print(utxo_json);
 
-  //specific process for Marketplace step 2 to ensure continuity in the marketplace blockchain
+  
+
+  //specific process for Marketplace step 15 & 2 to ensure continuity in the marketplace blockchain
   var utxo_json_marketplace=null;
-  if(marketplace_step==2){
+  if(marketplace_step == 15 || marketplace_step==2){
     var utxo_response_marketplace = await http.get(Uri.parse(nig_hostname+'/utxo/'+smart_contract_ref));
     if (utxo_response_marketplace.statusCode == 503 || utxo_response_marketplace.statusCode == 302) {
       //the server is in maintenance
@@ -769,7 +980,7 @@ memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['a
 
     //Buyer deposit management
     var requested_deposit_raw = 0.0;
-    if(marketplace_step==1){
+    if(marketplace_step==1 || marketplace_step==15){
       transaction_amount= smart_contract_result;
     }
     else if (marketplace_step==2){
@@ -943,8 +1154,11 @@ memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['a
   };
 }else{
   result_status=false;
-  if (step1_error==true){
-  result_statusCode = "Pas assez de NIG pour la caution!";
+  if (step1_sell_error==true){
+  result_statusCode = "Pas assez de NIG sur le compte !";
+  }
+  if (step1_buy_error==true){
+  result_statusCode = "Pas assez de NIG pour la caution !";
   }
   if (step2_error==true){
   result_statusCode = "Déjà vendu!";

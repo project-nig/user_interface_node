@@ -9,10 +9,11 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:restart_app/restart_app.dart';
 
-import 'sell_followup_item.dart';
-import 'sell_followup_page.dart';
+import 'purchase_item.dart';
+import 'purchase_page.dart';
 import '../parameters.dart';
 import '../account_getactive.dart';
+import '../account_file.dart';
 
 const catalogLength = 3;
 
@@ -20,45 +21,42 @@ const catalogLength = 3;
 /// contents with an actual network call, keeping the signature the same.
 ///
 /// It will fetch a page of items from [startingIndex].
-Future<Marketplace3ItemPage> fetchPage(int startingIndex) async {
+Future<Marketplace1_sellItemPage> fetchPage(int startingIndex) async {
 
   // Extraction of the pulic key
   //final String public_key_response = await rootBundle.loadString('assets/nig_data.json');
   //final public_key_data = await json.decode(public_key_response);
   var public_key_data = await ActiveAccount();
   var user_public_key_hash=public_key_data["public_key_hash"];
-  List<Marketplace3Item> fetched_marketplace2_list =[] ;
+  List<Marketplace1_sellItem> fetched_marketplace1_list =[] ;
   print("user_public_key_hash");
   print(user_public_key_hash);
-  var response = await http.get(Uri.parse(nig_hostname+'/marketplace_step/3/'+user_public_key_hash));
+  var purchase_amount=await readPurchaseAmount();
+  var response = await http.get(Uri.parse(nig_hostname+'/marketplace_step/-1/'+user_public_key_hash+'/'+purchase_amount.toString()));
     if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
     // then parse the JSON.
-    var fetched_results = FetchedMarketplace2.fromJson(jsonDecode(response.body));
+    var fetched_results = FetchedMarketplace1.fromJson(jsonDecode(response.body));
 
     for (var elem in fetched_results.results) {
-      var color=Colors.grey;
-
-      fetched_marketplace2_list.add(Marketplace3Item(
-        color: color,
-        requester_public_key_hash: elem['requester_public_key_hash'],
-        requester_public_key_hex: elem['requester_public_key_hex'],
-        requested_amount: elem['requested_amount'],
-        requested_nig: elem['requested_nig'],
-        requested_gap: elem['requested_gap'],
-        requested_currency: elem['requested_currency'],
-        timestamp: elem['timestamp_nig'],
-        payment_ref: elem['payment_ref'],
-        smart_contract_ref: elem['smart_contract_ref'],
-        readonly_flag: elem['readonly_flag'],
-        step: elem['step'],
-        buyer_reput_trans: elem['buyer_reput_trans'],
-        buyer_reput_reliability: elem['buyer_reput_reliability'],
-      ));
+      if (elem['readonly_flag']==false){
+        var color=Colors.grey;
+        fetched_marketplace1_list.add(Marketplace1_sellItem(
+          color: color,
+          requester_public_key_hash: elem['seller_public_key_hash'],
+          requested_amount: elem['requested_amount'],
+          requested_nig: elem['requested_nig'],
+          requested_gap: elem['requested_gap'],
+          timestamp: elem['timestamp_nig'],
+          payment_ref: elem['payment_ref'],
+          smart_contract_ref: elem['smart_contract_ref'],
+          readonly_flag: elem['readonly_flag'],
+          seller_reput_trans: elem['seller_reput_trans'],
+          seller_reput_reliability: elem['seller_reput_reliability'].toDouble(),
+        ));
+        }
     };
-  
-  } 
-  else if (response.statusCode == 503 || response.statusCode == 302 ) {
+  } else if (response.statusCode == 503 || response.statusCode == 302) {
       //the server is in maintenance
       //let's restart the application
       Restart.restartApp();
@@ -72,7 +70,7 @@ Future<Marketplace3ItemPage> fetchPage(int startingIndex) async {
   // If the [startingIndex] is beyond the bounds of the catalog, an
   // empty page will be returned.
   if (startingIndex > catalogLength) {
-    return Marketplace3ItemPage(
+    return Marketplace1_sellItemPage(
       items: [],
       startingIndex: startingIndex,
       hasNext: false,
@@ -80,23 +78,23 @@ Future<Marketplace3ItemPage> fetchPage(int startingIndex) async {
   }
 
   // The page of items is generated here.
-  return Marketplace3ItemPage(
-    items: fetched_marketplace2_list,
+  return Marketplace1_sellItemPage(
+    items: fetched_marketplace1_list,
     startingIndex: startingIndex,
     // Returns `false` if we've reached the [catalogLength].
     hasNext: startingIndex + itemsPerPage < catalogLength,
   );
 }
 
-class FetchedMarketplace2 {
+class FetchedMarketplace1 {
   final List results;
 
-  const FetchedMarketplace2({
+  const FetchedMarketplace1({
     required this.results,
   });
 
-  factory FetchedMarketplace2.fromJson(Map<String, dynamic> json) {
-    return FetchedMarketplace2(
+  factory FetchedMarketplace1.fromJson(Map<String, dynamic> json) {
+    return FetchedMarketplace1(
       results: json['results'],
     );
   }

@@ -56,8 +56,8 @@ class _AccountCreationHomeState extends State<AccountCreationHome> {
                             TextButton(
                             child: const Text('Créer un nouveau compte'),
                               onPressed: () async {
-                                print("contenu du compte");
-                                print(snapshot.data!.account_list);
+                                //print("contenu du compte");
+                                //print(snapshot.data!.account_list);
 
                                 if (snapshot.data!.account_list.length>=nb_account_max){
                                   _showDialog("$nb_account_max compte(s) maximun autorisé(s)");

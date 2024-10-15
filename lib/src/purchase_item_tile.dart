@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:form_app/src/api/item.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:http/http.dart' as http;
-import 'api/sell_item.dart';
+import 'api/purchase_item.dart';
 import 'nig_engine.dart';
 import 'parameters.dart';
 import 'dart:convert';
@@ -26,7 +26,7 @@ import 'package:rate_in_stars/rate_in_stars.dart';
 /// once we have the actual data [item].
 
 class ItemTile extends StatelessWidget {
-  final Marketplace1Item item;
+  final Marketplace1_sellItem item;
   final SharedPreferences prefs;
 
   const ItemTile({
@@ -36,7 +36,7 @@ class ItemTile extends StatelessWidget {
 
   action(){
     if (this.item.readonly_flag == false) {
-      return const Text('Vendre');
+      return const Text('Acheter');
       }
     else{
       return const Text('Détails',
@@ -51,13 +51,13 @@ class ItemTile extends StatelessWidget {
     //default value for new user
     var star_rating=5.0;
     var star_color=Colors.grey;
-    if (item.buyer_reput_trans!=0){
+    if (item.seller_reput_trans!=0){
       //this is not a new user
-      star_rating=(item.buyer_reput_reliability/100)*5;
+      star_rating=(item.seller_reput_reliability/100)*5;
       if (star_rating<3){star_rating=3.0;};
-      if (item.buyer_reput_reliability>star_rating_level_high){star_color=Colors.green;}
-      else if(item.buyer_reput_reliability>=star_rating_level_medium){star_color=Colors.amber;}
-      else if(item.buyer_reput_reliability<star_rating_level_medium){star_color=Colors.red;}
+      if (item.seller_reput_reliability>star_rating_level_high){star_color=Colors.green;}
+      else if(item.seller_reput_reliability>=star_rating_level_medium){star_color=Colors.amber;}
+      else if(item.seller_reput_reliability<star_rating_level_medium){star_color=Colors.red;}
     };
     
 
@@ -119,7 +119,7 @@ class LoadingItemTile extends StatelessWidget {
 
 class SecondPage extends StatefulWidget {
 
-  final Marketplace1Item data;
+  final Marketplace1_sellItem data;
   final SharedPreferences prefs;
 
   const SecondPage({
@@ -164,7 +164,7 @@ class _SecondPageState extends State<SecondPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text("Détail de la demande d'achat"),
+        title: Text("Détail de la demande de vente"),
       ),
       body: Container(
         child: Center(
@@ -182,7 +182,7 @@ class _SecondPageState extends State<SecondPage> {
                     DataColumn(
                       label: Expanded(
                         child: Text(
-                          'Acheteur',
+                          'Vendeur',
                           style: TextStyle(fontStyle: FontStyle.italic),
                         ),
                       ),
@@ -196,12 +196,12 @@ class _SecondPageState extends State<SecondPage> {
                     ),
                     DataRow(
                       cells: <DataCell>[
-                        DataCell(Text('Taux de fiabilité:    ${widget.data.buyer_reput_reliability} %')),
+                        DataCell(Text('Taux de fiabilité:    ${widget.data.seller_reput_reliability} %')),
                       ],
                     ),
                     DataRow(
                       cells: <DataCell>[
-                        DataCell(Text('Nombre de transaction:    ${widget.data.buyer_reput_trans}')),
+                        DataCell(Text('Nombre de transaction:    ${widget.data.seller_reput_trans}')),
                       ],
                     ),
                   ],
@@ -279,8 +279,8 @@ class _SecondPageState extends State<SecondPage> {
                 ),
                 
                 TextButton(
-                      child: const Text('Vendre'),
-                      onPressed: CheckIfReadOnly() ? null : () => TriggerSell(widget.prefs),
+                      child: const Text('Acheter'),
+                      onPressed: CheckIfReadOnly() ? null : () => TriggerPurchase(widget.prefs),
                     ),
 
                 TextButton(
@@ -330,25 +330,25 @@ CheckNotIfReadOnly(){
   
 
 
-Future<String> TriggerSell(prefs) async {
+Future<String> TriggerPurchase(prefs) async {
   var check_timer=await CheckTimer(40000);
   if (check_timer=="ok"){
     try{
-      final result_step2 = await launchNigEngine(widget.data.requested_nig,widget.data.requester_public_key_hash,widget.data.requester_public_key_hash,"purchase_step2",widget.data.requested_amount,0,widget.data.timestamp,widget.data.payment_ref,widget.data.requester_public_key_hex,widget.data.requested_nig,"",widget.data.smart_contract_ref);
+      final result_step15 = await launchNigEngine(widget.data.requested_nig,widget.data.requester_public_key_hash,widget.data.requester_public_key_hash,"purchase_step15",widget.data.requested_amount,widget.data.requested_gap,widget.data.timestamp,widget.data.payment_ref,"",widget.data.requested_nig,"",widget.data.smart_contract_ref);
       print('====result purchase_step2=====');
-      print(result_step2.status);
+      print(result_step15.status);
 
-      if (result_step2.status == true) {
-              _showDialog("Demande de vente a réussi");
+      if (result_step15.status == true) {
+              _showDialog("Demande d'achat a réussi");
             } else {
-              _showDialog("La Demande de vente a échoué");
-              _showDialog(result_step2.statusCode);
+              _showDialog("La Demande d'achat a échoué");
+              _showDialog(result_step15.statusCode);
             };
 
       }
     catch(e) {
           _showDialog(e.toString());
-          _showDialog("La Demande de vente a échoué");
+          _showDialog("La Demande d'achat a échoué");
     };
     return "";
   }
@@ -435,7 +435,7 @@ mp_request_step2_done.get_mp_details(99)
       var buyer_public_key_hash=public_key_data["public_key_hash"];
       var marketplace_script2="""\r
 memory_obj_2_load=['mp_request_step2_done']
-mp_request_step2_done.cancel("$buyer_public_key_hash","$mp_request_signature","seller")
+mp_request_step2_done.cancel("$buyer_public_key_hash","$mp_request_signature","buyer")
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
     'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
     'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
@@ -485,4 +485,9 @@ memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['a
     }
   return "";
   }
+
+
+
+  
+
 }

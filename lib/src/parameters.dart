@@ -1,5 +1,5 @@
-final nig_hostname = "http://127.0.0.1:5000";
-//final nig_hostname = "http://vps90843.serveur-vps.net";
+//final nig_hostname = "http://127.0.0.1:5000";
+final nig_hostname = "http://vps90843.serveur-vps.net";
 
 var NUMBER_OF_LEADING_ZEROS = 3;
 var BLOCK_REWARD = 6;
@@ -19,7 +19,7 @@ var EUR_NIG_VALUE_START_INCREASE_HALVING_DAYS = 10;
 
 
 var appplication_issue_flag=false;
-final application_version="22";
+final application_version="23";
 var maintenance_flag=false;
 final connectivity_flag=true;
 final APPLICATION_VERSION_PUBLIC_KEY_HASH='0ee93ba03f12c3a9e04b7982b5e4b657654aa74a';

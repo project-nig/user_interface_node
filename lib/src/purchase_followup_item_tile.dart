@@ -114,11 +114,11 @@ class ItemTile extends StatelessWidget {
     super.key});
 
   action(){
-    if (this.item.readonly_flag == false) {
+    if (this.item.readonly_flag == false && this.item.step != 15) {
       return const Text('Payer');
       }
     else{
-      if (this.item.step == 1) {
+      if (this.item.step == 1 || this.item.step == 15) {
         return const Text('Annuler');
       }
       else{
@@ -464,10 +464,10 @@ mp_request_step2_done.get_mp_details(99)
                         var buyer_public_key_hash=public_key_data["public_key_hash"];
                         var marketplace_script2="""\r
 memory_obj_2_load=['mp_request_step2_done']
-mp_request_step2_done.cancel("$buyer_public_key_hash","$mp_request_signature")
+mp_request_step2_done.cancel("$buyer_public_key_hash","$mp_request_signature","buyer")
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 123456
 """;
@@ -616,6 +616,12 @@ class _CancelPageState extends State<CancelPage> {
                   ],
                 ),
                 DataRow(
+                      cells: <DataCell>[
+                        DataCell(Text('Ecart')),
+                        DataCell(Text('${widget.data.requested_gap} %')),
+                      ],
+                    ),
+                DataRow(
                   cells: <DataCell>[
                     DataCell(Text('Horaire (GMT)')),
                     DataCell(Text('${DateFormat('dd/MM/yyyy, H:mm:s').format(DateTime.fromMillisecondsSinceEpoch((widget.data.timestamp*1000).round()))}')),
@@ -737,10 +743,10 @@ mp_request_step2_done.get_mp_details(99)
                         var buyer_public_key_hash=public_key_data["public_key_hash"];
                         var marketplace_script2="""\r
 memory_obj_2_load=['mp_request_step2_done']
-mp_request_step2_done.cancel("$buyer_public_key_hash","$mp_request_signature")
+mp_request_step2_done.cancel("$buyer_public_key_hash","$mp_request_signature","buyer")
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
-  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
-  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability',
+  'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',
+  'buyer_public_key_hex','requested_nig','timestamp_nig','recurrency_flag','recurrency_duration','seller_public_key_hex','seller_public_key_hash','encrypted_account','buyer_reput_trans','buyer_reput_reliability','seller_reput_trans','seller_reput_reliability',
   'mp_request_signature','mp_request_id','previous_mp_request_name','mp_request_name','seller_safety_coef','smart_contract_ref','new_user_flag','reputation_buyer','reputation_seller']])
 123456
 """;

@@ -106,7 +106,7 @@ class _ContestState extends State<Contest> {
                           //var requester_public_key_hex=public_key_data["public_key_hex"];
                           try{
                             var result_step1 = await launchNigContest(requester_public_key_hash,requested_name);
-                            print('====result purchase_step1=====');
+                            print('====result =====');
                             print(result_step1.status);
 
                             if (result_step1.status == true) {

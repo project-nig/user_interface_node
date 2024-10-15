@@ -252,3 +252,31 @@ readPurchaseAmount() async {
     return 888888;
   }
 }
+
+//management of Sell Amount
+Future<File> get _localSellAmount async {
+  final path = await _localPath;
+  return File('$path/sell_amount.txt');
+}
+
+Future<File> UpdateSellAmount(sell_amount) async {
+  final file = await _localSellAmount;
+  // Write the file
+  return file.writeAsString(json.encode(sell_amount));
+}
+
+readSellAmount() async {
+  try {
+    final file = await _localSellAmount;
+    // Read the file
+    var sell_amount = await file.readAsString();
+    print("===check sell_amount");
+    log(sell_amount);
+    return jsonDecode(sell_amount);
+  } catch (e) {
+    print("===erreur with readSellAmount");
+    print(e);
+    // If encountering an error, return 0
+    return 888888;
+  }
+}

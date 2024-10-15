@@ -5,7 +5,8 @@ import 'dart:convert';
 import 'account_getactive.dart';
 import 'account_file.dart';
 import 'package:flutter/material.dart';
-import 'purchase.dart';
+import 'purchase_intro.dart';
+import 'purchase_request.dart';
 import 'sell_intro.dart';
 import 'purchase_followup.dart';
 import 'sell_followup.dart';
@@ -38,7 +39,7 @@ class LocalNotificationService {
     if (notificationResponse.payload == "purchase") {
       await Navigator.push(
       context,
-      MaterialPageRoute<void>(builder: (context) => Purchase(
+      MaterialPageRoute<void>(builder: (context) => PurchaseIntro(
                 prefs: prefs,
               ),
             ),

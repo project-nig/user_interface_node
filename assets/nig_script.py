@@ -163,8 +163,8 @@ class TransactionOutput:
             self.locking_script = f"OP_DUP OP_HASH160 {marketplace_wallet.public_key_hash} OP_EQUAL_VERIFY OP_CHECKSIG{public_key_hash_str}"
             if account_temp=="reputation_creation":self.locking_script+=" OP_RE"
 
-            if marketplace_step==2:
-                #in marketplace_step 2, the marketplace contract needs to be deassociated from the SmartContract
+            if marketplace_step==15 or marketplace_step==2:
+                #in marketplace_step 15 & 2, the marketplace contract needs to be deassociated from the SmartContract
                 self.locking_script+=" OP_DEL_SC "+marketplace_wallet.public_key_hash
 
             if marketplace_step==99 or marketplace_step==98 or marketplace_step==66:
@@ -536,19 +536,27 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
     if action=="smart_contract_creation" or action=="reputation_creation":utxo_json=[{'amount':0}]
     marketplace_step2_flag=False
     for utxo in utxo_json:
-        if marketplace_step==0 or marketplace_step==1 or marketplace_step>=2 and utxo['amount']>0 or action=="transfer" or action=="smart_contract_creation" or action=="smart_contract_update" or action=="reputation_creation":
-            if marketplace_step==1 or marketplace_step==2:
+        if marketplace_step==0 or marketplace_step==-1 or marketplace_step==1 or marketplace_step==15 or marketplace_step>=2 and utxo['amount']>0 or action=="transfer" or action=="smart_contract_creation" or action=="smart_contract_update" or action=="reputation_creation":
+            if marketplace_step==1 or marketplace_step==15 or marketplace_step==2:
+                unlocking_public_key_hash_value=sender_wallet.public_key_hash
+                marketplace_flag_value=False
+                if marketplace_step==15:
+                    unlocking_public_key_hash_value=marketplace_wallet.public_key_hash+" SC "+smart_contract_ref
+                    marketplace_flag_value=True
                 input_list.append(TransactionInput(transaction_hash=utxo['transaction_hash'],
                     output_index=utxo['output_index'],
-                    unlocking_public_key_hash=sender_wallet.public_key_hash,
+                    unlocking_public_key_hash=unlocking_public_key_hash_value,
+                    marketplace_flag=marketplace_flag_value,
                     network=network))
-                if marketplace_step==2 and marketplace_step2_flag is False:
-                    input_list.append(TransactionInput(transaction_hash=utxo_json_marketplace['utxos'][0]['transaction_hash'],
-                        output_index=utxo_json_marketplace['utxos'][0]['output_index'],
-                        unlocking_public_key_hash=marketplace_wallet.public_key_hash+" SC "+smart_contract_ref,
-                        network=network,
-                        marketplace_flag=True))
-                    marketplace_step2_flag=True
+                
+                if marketplace_step==15 and marketplace_step2_flag is False or marketplace_step==2 and marketplace_step2_flag is False:
+                    if utxo_json_marketplace is not None:
+                        input_list.append(TransactionInput(transaction_hash=utxo_json_marketplace['utxos'][0]['transaction_hash'],
+                            output_index=utxo_json_marketplace['utxos'][0]['output_index'],
+                            unlocking_public_key_hash=marketplace_wallet.public_key_hash+" SC "+smart_contract_ref,
+                            network=network,
+                            marketplace_flag=True))
+                        marketplace_step2_flag=True
             else:
                 #unlocking_public_key_hash=marketplace_wallet.public_key_hash,
                 #smart_contract_ref 
@@ -632,7 +640,12 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
                     output_list.append(transactionoutput_obj_step4_seller.generate(transaction_amount-requested_nig))
                 else:
 
-                    if marketplace_step==2:
+                    if marketplace_step==15:
+                        #requester and current wallet are public_key_hash to ensure that MasterState will have the SmartContract
+                        transactionoutput_obj.list_public_key_hash.extend([requester_public_key_hash,sender_wallet.public_key_hash])
+                        output_list.append(transactionoutput_obj.generate(utxo['amount']))
+
+                    elif marketplace_step==2:
                         #requester and current wallet are public_key_hash to ensure that MasterState will have the SmartContract
                         transactionoutput_obj.list_public_key_hash.extend([requester_public_key_hash,sender_wallet.public_key_hash])
                         #the amount of the transaction is updated after by transaction_amount_init
@@ -641,7 +654,7 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
                     elif transfer_flag is True:
                         output_list.append(transactionoutput_obj.generate(transaction_amount))  
                     else:
-                        if marketplace_step==0:
+                        if marketplace_step==0 or marketplace_step==-1:
                             transactionoutput_obj.list_public_key_hash.extend([sender_wallet.public_key_hash,marketplace_wallet.public_key_hash])
                             output_list.append(transactionoutput_obj.generate(utxo['amount']))
                         elif marketplace_step==1:
@@ -730,7 +743,20 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
 
 if action=="transfer":transaction,transaction_amount=purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amount,account_temp_input,account_temp_output,transfer_flag=True,utxo_json=utxo_json)
 
-if action=="purchase_step1":
+
+if action=="purchase_step1_sell":
+    #timestamp_nig=datetime.datetime.timestamp(datetime.datetime.utcnow())
+    nig_rate=calculate_nig_rate(timestamp=timestamp_nig,currency="eur")
+    #requested_nig=normal_round(requested_amount/nig_rate,ROUND_VALUE_DIGIT)
+
+    receiver_public_key_hash=smart_contract_ref
+    
+    transaction,transaction_amount=purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amount,account_temp_input,account_temp_output,
+    marketplace_step=-1,requested_amount=requested_amount,timestamp_nig=timestamp_nig,nig_rate=nig_rate,requested_nig=requested_nig,requester_public_key_hash=requester_public_key_hash,requested_currency="eur",requester_public_key_hex=sender_wallet.public_key_hex,
+    smart_contract_account=smart_contract_account,smart_contract_sender=smart_contract_sender,smart_contract_new=smart_contract_new,smart_contract_flag=smart_contract_flag,smart_contract_gas=smart_contract_gas,smart_contract_memory=smart_contract_memory,smart_contract_memory_size=smart_contract_memory_size
+    ,smart_contract_type=smart_contract_type,smart_contract_payload=smart_contract_payload,smart_contract_result=smart_contract_result,smart_contract_previous_transaction=smart_contract_previous_transaction,smart_contract_transaction_hash=smart_contract_transaction_hash,smart_contract_ref=smart_contract_ref,marketplace_transaction_flag=True,utxo_json=utxo_json)
+
+if action=="purchase_step1_buy":
     #timestamp_nig=datetime.datetime.timestamp(datetime.datetime.utcnow())
     nig_rate=calculate_nig_rate(timestamp=timestamp_nig,currency="eur")
     #requested_nig=normal_round(requested_amount/nig_rate,ROUND_VALUE_DIGIT)
@@ -739,6 +765,18 @@ if action=="purchase_step1":
     
     transaction,transaction_amount=purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amount,account_temp_input,account_temp_output,
     marketplace_step=1,requested_amount=requested_amount,timestamp_nig=timestamp_nig,nig_rate=nig_rate,requested_nig=requested_nig,requester_public_key_hash=requester_public_key_hash,requested_currency="eur",requester_public_key_hex=sender_wallet.public_key_hex,
+    smart_contract_account=smart_contract_account,smart_contract_sender=smart_contract_sender,smart_contract_new=smart_contract_new,smart_contract_flag=smart_contract_flag,smart_contract_gas=smart_contract_gas,smart_contract_memory=smart_contract_memory,smart_contract_memory_size=smart_contract_memory_size
+    ,smart_contract_type=smart_contract_type,smart_contract_payload=smart_contract_payload,smart_contract_result=smart_contract_result,smart_contract_previous_transaction=smart_contract_previous_transaction,smart_contract_transaction_hash=smart_contract_transaction_hash,smart_contract_ref=smart_contract_ref,marketplace_transaction_flag=True,utxo_json=utxo_json)
+
+if action=="purchase_step15":
+    #timestamp_nig=datetime.datetime.timestamp(datetime.datetime.utcnow())
+    nig_rate=calculate_nig_rate(timestamp=timestamp_nig,currency="eur")
+    #requested_nig=normal_round(requested_amount/nig_rate,ROUND_VALUE_DIGIT)
+
+    receiver_public_key_hash=smart_contract_ref
+    
+    transaction,transaction_amount=purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amount,account_temp_input,account_temp_output,
+    marketplace_step=15,requested_amount=requested_amount,timestamp_nig=timestamp_nig,nig_rate=nig_rate,requested_nig=requested_nig,requester_public_key_hash=requester_public_key_hash,requested_currency="eur",requester_public_key_hex=sender_wallet.public_key_hex,
     smart_contract_account=smart_contract_account,smart_contract_sender=smart_contract_sender,smart_contract_new=smart_contract_new,smart_contract_flag=smart_contract_flag,smart_contract_gas=smart_contract_gas,smart_contract_memory=smart_contract_memory,smart_contract_memory_size=smart_contract_memory_size
     ,smart_contract_type=smart_contract_type,smart_contract_payload=smart_contract_payload,smart_contract_result=smart_contract_result,smart_contract_previous_transaction=smart_contract_previous_transaction,smart_contract_transaction_hash=smart_contract_transaction_hash,smart_contract_ref=smart_contract_ref,marketplace_transaction_flag=True,utxo_json=utxo_json)
 
