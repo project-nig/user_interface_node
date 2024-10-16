@@ -266,7 +266,7 @@ class _SecondPageState extends State<SecondPage> {
                       print("public_key_hash");
                       print(public_key);
                       var decrypted_pin =null;
-                      var response = await http.get(Uri.parse(nig_hostname+'/sell_followup_step4_pin/'+public_key+'/'+widget.data.payment_ref));
+                      var response = await http.get(Uri.parse(nig_hostname+'/sell_followup_step4_pin/'+public_key+'/'+widget.data.smart_contract_ref));
                       if (response.statusCode == 503 || response.statusCode == 302) {
                         //the server is in maintenance
                         //let's restart the application

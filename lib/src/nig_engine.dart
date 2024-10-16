@@ -244,9 +244,12 @@ CONVERT_2_NIG($requested_amount*GET_BUYER_SAFETY_COEF()*(1-$requested_gap/100),d
     //var response_marketplace_script_code = await http.get(Uri.parse(nig_hostname+'/smart_contract_api/'+MARKETPLACE_CODE_PUBLIC_KEY_HASH));
     //var marketplace_script1_3=jsonDecode(response_marketplace_script_code.body)['smart_contract_payload'];
 
+    var buyer_reput_reliability=reputation[1];
+    if (buyer_reput_reliability==0){buyer_reput_reliability=0.0;};
+
     var marketplace_script1_4="""\r
 mp_request_step2_done=MarketplaceRequest()
-mp_request_step2_done.step1_buy("mp_request_step2_done","$requester_public_key_hash","$requester_public_key_hex",$requested_amount,$requested_gap,"$smart_contract_ref","$new_user_flag",$reputation[0],$reputation[1])
+mp_request_step2_done.step1_buy("mp_request_step2_done","$requester_public_key_hash","$requester_public_key_hex",$requested_amount,$requested_gap,"$smart_contract_ref","$new_user_flag",$reputation[0],$buyer_reput_reliability)
 mp_request_step2_done.account=sender
 memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['account','step','timestamp','requested_amount',
   'requested_currency','requested_deposit','buyer_public_key_hash','timestamp_step1_sell','timestamp_step1_buy','timestamp_step15','timestamp_step2','timestamp_step3','timestamp_step4','requested_gap',

@@ -1,5 +1,5 @@
-//final nig_hostname = "http://127.0.0.1:5000";
-final nig_hostname = "http://vps90843.serveur-vps.net";
+final nig_hostname = "http://127.0.0.1:5000";
+//final nig_hostname = "http://vps90843.serveur-vps.net";
 
 var NUMBER_OF_LEADING_ZEROS = 3;
 var BLOCK_REWARD = 6;
