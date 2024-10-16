@@ -39,7 +39,7 @@ Future<File> get _localFile async {
 }
 
 Future<File> writeAccount(String account_list) async {
-  final file = await _localFile;
+  var file = await _localFile;
   // Write the file
   print("===check writeAccount");
   print(account_list);
@@ -62,7 +62,7 @@ class AccountList {
 
 Future<AccountList> readAccountList() async {
   try {
-    final file = await _localFile;
+    var file = await _localFile;
 
     //deletion of the file
     //file.deleteSync();
@@ -168,7 +168,7 @@ Future<Map> readNotificationList(requester_public_key_hash) async {
     default_notification_timestamp_user_dict['98']=now_str;
     default_notification_timestamp_user_dict['99']=now_str;
     try{
-      final file = await _localNotificationFile;
+      var file = await _localNotificationFile;
       // Read the file
       String contents = await file.readAsString();
       var notification_timestamp_dict = jsonDecode(contents);
@@ -220,7 +220,7 @@ Future<Map> readNotificationList(requester_public_key_hash) async {
 }
 
 Future<File> UpdateNotificationTimeStamp(notification_timestamp_dict) async {
-  final file = await _localNotificationFile;
+  var file = await _localNotificationFile;
   // Write the file
   return file.writeAsString(json.encode(notification_timestamp_dict));
 }
@@ -232,14 +232,14 @@ Future<File> get _localPurchaseAmount async {
 }
 
 Future<File> UpdatePurchaseAmount(purchase_amount) async {
-  final file = await _localPurchaseAmount;
+  var file = await _localPurchaseAmount;
   // Write the file
   return file.writeAsString(json.encode(purchase_amount));
 }
 
 readPurchaseAmount() async {
   try {
-    final file = await _localPurchaseAmount;
+    var file = await _localPurchaseAmount;
     // Read the file
     var purchase_amount = await file.readAsString();
     print("===check purchase_amount");
@@ -260,14 +260,14 @@ Future<File> get _localSellAmount async {
 }
 
 Future<File> UpdateSellAmount(sell_amount) async {
-  final file = await _localSellAmount;
+  var file = await _localSellAmount;
   // Write the file
   return file.writeAsString(json.encode(sell_amount));
 }
 
 readSellAmount() async {
   try {
-    final file = await _localSellAmount;
+    var file = await _localSellAmount;
     // Read the file
     var sell_amount = await file.readAsString();
     print("===check sell_amount");

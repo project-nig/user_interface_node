@@ -31,8 +31,8 @@ Future<Marketplace1ItemPage> fetchPage(int startingIndex) async {
   List<Marketplace1Item> fetched_marketplace1_list =[] ;
   print("user_public_key_hash");
   print(user_public_key_hash);
-  var purchase_amount=await readPurchaseAmount();
-  var response = await http.get(Uri.parse(nig_hostname+'/marketplace_step/1/'+user_public_key_hash+'/'+purchase_amount.toString()));
+  var sell_amount=await readSellAmount();
+  var response = await http.get(Uri.parse(nig_hostname+'/marketplace_step/1/'+user_public_key_hash+'/'+sell_amount.toString()));
     if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
     // then parse the JSON.

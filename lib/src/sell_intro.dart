@@ -100,7 +100,7 @@ class _SellIntroState extends State<SellIntro> {
                   TextButton(
                     child: const Text("Lister les demandes d'achat"),
                     onPressed: () async {
-                      await UpdatePurchaseAmount(double.parse(formData.toJson()['amount']));
+                      await UpdateSellAmount(double.parse(formData.toJson()['amount']));
                       Navigator.of(context).push(MaterialPageRoute(builder: (context) => SellHome(prefs: widget.prefs, amount:5)));
                     },
                   ),
