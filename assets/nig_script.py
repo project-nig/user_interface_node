@@ -527,6 +527,8 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
 
     smart_contract_transaction_flag=False
 
+    requested_deposit=kwargs.get('requested_deposit',None)
+
 
     
 
@@ -535,14 +537,18 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
     output_list=[]
     if action=="smart_contract_creation" or action=="reputation_creation":utxo_json=[{'amount':0}]
     marketplace_step2_flag=False
+    utxo_total=0
     for utxo in utxo_json:
         if marketplace_step==0 or marketplace_step==-1 or marketplace_step==1 or marketplace_step==15 or marketplace_step>=2 and utxo['amount']>0 or action=="transfer" or action=="smart_contract_creation" or action=="smart_contract_update" or action=="reputation_creation":
             if marketplace_step==1 or marketplace_step==15 or marketplace_step==2:
-                unlocking_public_key_hash_value=sender_wallet.public_key_hash
-                marketplace_flag_value=False
-                if marketplace_step==15:
+                if marketplace_step==15 and utxo_json_marketplace is None:
+                    #in case of buyer without reputation, there is no utxo for the buyer 
+                    #utxo is the utxo of the SmartContract so utxo_json_marketplace is None
                     unlocking_public_key_hash_value=marketplace_wallet.public_key_hash+" SC "+smart_contract_ref
                     marketplace_flag_value=True
+                else:
+                    unlocking_public_key_hash_value=sender_wallet.public_key_hash
+                    marketplace_flag_value=False
                 input_list.append(TransactionInput(transaction_hash=utxo['transaction_hash'],
                     output_index=utxo['output_index'],
                     unlocking_public_key_hash=unlocking_public_key_hash_value,
@@ -599,6 +605,7 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
 
             if float(utxo['amount'])>=float(transaction_amount):
                 #only one utxo is sufficient
+                utxo_total+=utxo['amount']
                 if marketplace_step==4:
                     #for marketplace_step 4, the SmartContract is sent only to the smart_contract_ref with a zero amount
                     transactionoutput_obj.list_public_key_hash=[smart_contract_ref]
@@ -640,12 +647,7 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
                     output_list.append(transactionoutput_obj_step4_seller.generate(transaction_amount-requested_nig))
                 else:
 
-                    if marketplace_step==15:
-                        #requester and current wallet are public_key_hash to ensure that MasterState will have the SmartContract
-                        transactionoutput_obj.list_public_key_hash.extend([requester_public_key_hash,sender_wallet.public_key_hash])
-                        output_list.append(transactionoutput_obj.generate(utxo['amount']))
-
-                    elif marketplace_step==2:
+                    if marketplace_step==15 or marketplace_step==2:
                         #requester and current wallet are public_key_hash to ensure that MasterState will have the SmartContract
                         transactionoutput_obj.list_public_key_hash.extend([requester_public_key_hash,sender_wallet.public_key_hash])
                         #the amount of the transaction is updated after by transaction_amount_init
@@ -670,11 +672,20 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
                 
                 if marketplace_step!=3 and marketplace_step!=4 and action!="smart_contract_creation" and action!="smart_contract_update" and action!="reputation_creation":
                     #no needed in marketplace_step 3 and 4
-                    if float(utxo['amount'])-float(transaction_amount)>0:
-                        output_list.append(TransactionOutput(list_public_key_hash=[sender_wallet.public_key_hash],
-                                                             transfer_flag=transfer_flag,
-                                                             amount=utxo['amount']-transaction_amount,
-                                                             remaing_transaction=True))
+                    if marketplace_step==15:
+                        transaction_amount=transaction_amount_init
+                        if float(utxo_total)-float(transaction_amount_init)>0:
+                            output_list.append(TransactionOutput(list_public_key_hash=[sender_wallet.public_key_hash],
+                                                                    transfer_flag=transfer_flag,
+                                                                    amount=utxo_total-transaction_amount_init,
+                                                                    remaing_transaction=True))
+
+                    else:
+                        if float(utxo['amount'])-float(transaction_amount)>0:
+                            output_list.append(TransactionOutput(list_public_key_hash=[sender_wallet.public_key_hash],
+                                                                transfer_flag=transfer_flag,
+                                                                amount=utxo['amount']-transaction_amount,
+                                                                remaing_transaction=True))
                 #sender_wallet.process_transaction(inputs=input_list, outputs=output_list)
                 transaction = Transaction(input_list, output_list)
                 transaction.sign(sender_wallet)
@@ -705,11 +716,13 @@ def purchase_step_robot(sender_wallet,receiver_public_key_hash,transaction_amoun
                             output_list.append(TransactionOutput(list_public_key_hash=[sender_wallet.public_key_hash], 
                                                                  transfer_flag=transfer_flag,
                                                                  amount=(utxo['amount']-transaction_amount)))
+                if marketplace_step==15:
+                    utxo_total+=utxo['amount']
                 
                 transaction_amount-=float(utxo['amount'])
 
 
-    if marketplace_step==1 or marketplace_step==2 or action=="transfer":
+    if marketplace_step==1 or marketplace_step==15 or marketplace_step==2 or action=="transfer":
         output_list_checked=[]
         smart_contract_account_list=[]
         locking_script_list=[]

@@ -31,7 +31,7 @@ Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_
   var sender_public_key_hex=public_key_data["public_key_hex"];
   var private_key=public_key_data["private_key_str"];
   print("check private_key");
-  print(private_key);
+  //print(private_key);
 
   // Parameters
   dynamic result_statusCode='200';
@@ -60,6 +60,7 @@ Future <Result> launchNigEngine(var transaction_amount,var requester_public_key_
   var data_step2=null;
   var step2_data_last=false;
   var step2_transaction_amount=0.0;
+  var step15_requested_deposit=0.0;
   var step2_requested_deposit=0.0;
   var step4_requested_deposit=0.0;
   
@@ -282,16 +283,16 @@ mp_request_step2_done.get_requested_deposit()
     var reputation = await GetReputation();
     print("==>reputation");
     print(reputation);
-    var new_user_flag=false;
+    var new_user_flag="False";
     if (reputation[0]==0){
       //this account has no Reputation
       //it's a new User
-      new_user_flag=true;
+      new_user_flag="True";
       transaction_amount=0;
       }
     print("==>new_user_flag");
     print(new_user_flag);
-    if (new_user_flag == true){
+    if (new_user_flag == "True"){
       marketplace_step=150;
       }
     else {
@@ -322,10 +323,10 @@ CONVERT_2_NIG($requested_amount*GET_BUYER_SAFETY_COEF()*(1-$requested_gap/100),d
         //let's restart the application
         Restart.restartApp();
       }
-      var step1_requested_deposit=jsonDecode(marketplace_utxo_response.body)['smart_contract_result'].toDouble();
-      print('====step1_requested_deposit=====');
-      print(step1_requested_deposit);
-      if (step1_requested_deposit>step1_total){
+      step15_requested_deposit=jsonDecode(marketplace_utxo_response.body)['smart_contract_result'].toDouble();
+      print('====step15_requested_deposit=====');
+      print(step15_requested_deposit);
+      if (step15_requested_deposit>step1_total){
         //There is not enough NIG for the deposit of the Buyer which is an issue
         step1_buy_error=true;
       }
@@ -350,7 +351,6 @@ CONVERT_2_NIG($requested_amount*GET_BUYER_SAFETY_COEF()*(1-$requested_gap/100),d
     
     var buyer_reput_reliability=reputation[1];
     if (buyer_reput_reliability==0){buyer_reput_reliability=0.0;};
-
     var marketplace_script1_4="""\r
 memory_obj_2_load=['mp_request_step2_done']
 mp_request_step2_done.step15("$requester_public_key_hash","$requester_public_key_hex",$requested_amount,$requested_gap,"$smart_contract_ref","$new_user_flag",$reputation[0],$buyer_reput_reliability)
@@ -915,7 +915,7 @@ memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['a
       }
       else {
           utxo_url=nig_hostname+'/utxo/'+smart_contract_ref;
-          print("==check marketplace_step 3 or 4");
+          print("==check marketplace_step 150 or 3 or 4");
         }
       }
     };
@@ -983,20 +983,18 @@ memory_list.add([mp_request_step2_done,mp_request_step2_done.mp_request_name,['a
 
     //Buyer deposit management
     var requested_deposit_raw = 0.0;
-    if(marketplace_step==1 || marketplace_step==15){
-      transaction_amount= smart_contract_result;
-    }
+    if(marketplace_step==1){
+      transaction_amount= smart_contract_result;}
+    else if (marketplace_step==15){
+      transaction_amount=step15_requested_deposit;}
     else if (marketplace_step==2){
       requested_deposit_raw=step2_requested_deposit;}
-    
     else if (marketplace_step==4){
-      requested_deposit_raw=step4_requested_deposit;
-    }
+      requested_deposit_raw=step4_requested_deposit;}
     
     print("======requested_deposit_raw======");
     print(requested_deposit_raw);
 
-    
     param = "action_raw="""+json.encode(action)+"""\r"""+
     "transaction_amount_raw="""+json.encode(transaction_amount)+"""\r"""+
     "account_temp_input_raw="""+json.encode(account_temp_input)+"""\r"""+

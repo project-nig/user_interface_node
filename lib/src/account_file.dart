@@ -69,8 +69,8 @@ Future<AccountList> readAccountList() async {
 
     // Read the file
     var account_list = await file.readAsString();
-    print("===check account_list");
-    log(account_list);
+    //print("===check account_list");
+    //log(account_list);
     // bug fixing with end of string
     if (account_list.endsWith(']}}')){
       account_list = account_list.substring(0, account_list.length - 1);
