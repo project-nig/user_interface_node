@@ -186,7 +186,7 @@ class _Form_SC_CreationState extends State<Form_SC_Creation> {
     var utxo_json=new Map();
     var smart_contract_transaction_hash='';
 
-    if (smart_contract_ref== null){
+    if (smart_contract_ref== ""){
       //STEP 1- creation of a new Smart Contract address
       var sc_controller = await rootBundle.loadString('assets/nig_decrypt.py');
       var sc_param = "action_raw="""+json.encode("account_creation")+"""\r"""+
