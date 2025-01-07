@@ -31,6 +31,7 @@ dependencies:
   flutter_local_notifications: ^17.0.0
   cron: ^0.6.0
   rate_in_stars: ^0.0.3
+  web3dart: ^2.5.0
 
 dev_dependencies:
   flutter_test:
@@ -47,3 +48,4 @@ flutter:
     - assets/nig_data.json
     - assets/nig_script.py
     - assets/nig_decrypt.py
+    - assets/contract_abi.json

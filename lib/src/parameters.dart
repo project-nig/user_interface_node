@@ -1,5 +1,5 @@
-//final nig_hostname = "http://127.0.0.1:5000";
-final nig_hostname = "http://vps90843.serveur-vps.net";
+final nig_hostname = "http://127.0.0.1:5000";
+//final nig_hostname = "http://vps90843.serveur-vps.net";
 
 var NUMBER_OF_LEADING_ZEROS = 3;
 var BLOCK_REWARD = 6;
@@ -36,11 +36,11 @@ var notification_time_offset=7200;
 
 
 ///user profile
-final timer_check_flag=true;
-final smart_contract_creation_flag=false;
-final nb_account_max=3;
+//final timer_check_flag=true;
+//final smart_contract_creation_flag=false;
+//final nb_account_max=3;
 
 ///admin profile
-//final timer_check_flag=false;
-//final smart_contract_creation_flag=true;
-//final nb_account_max=10;
+final timer_check_flag=false;
+final smart_contract_creation_flag=true;
+final nb_account_max=10;
