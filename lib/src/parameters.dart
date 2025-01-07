@@ -41,6 +41,6 @@ var notification_time_offset=7200;
 //final nb_account_max=3;
 
 ///admin profile
-final timer_check_flag=false;
+//final timer_check_flag=false;
 final smart_contract_creation_flag=true;
 final nb_account_max=10;
